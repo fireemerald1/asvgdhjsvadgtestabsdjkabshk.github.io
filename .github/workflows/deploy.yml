@@ -1,5 +1,6 @@
 name: Deploy Website
 
+# Workflow to deploy the website to GitHub Pages - Updated to restart workflow
 on:
   push:
     branches: [ main ]
