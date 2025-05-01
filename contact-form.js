@@ -30,11 +30,11 @@ async function sendContactForm(e) {
     // Get configuration from config.js (which is not uploaded to GitHub)
     // If CONFIG is not defined, use fallback values for local development only
     // Default Resend API endpoint if CONFIG is not available
-    const resendApiUrl = typeof CONFIG !== 'undefined' ? CONFIG.RESEND_API_ENDPOINT : '/api/send-email';
-    // No domain restrictions - allow all domains
+    const resendApiUrl = typeof CONFIG !== 'undefined' ? CONFIG.RESEND_API_ENDPOINT : 'https://api.resend.com/emails';
+    const resendApiKey = typeof CONFIG !== 'undefined' ? CONFIG.RESEND_API_KEY : '';
     
     // If config is missing, show error
-    if (!resendApiUrl) {
+    if (!resendApiUrl || !resendApiKey) {
       statusDiv.textContent = 'Configuration error. Please contact the site administrator.';
       statusDiv.style.color = '#800000';
       submitBtn.disabled = false;
@@ -60,15 +60,19 @@ async function sendContactForm(e) {
     const res = await fetch(resendApiUrl, {
       method: 'POST',
       headers: { 
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${resendApiKey}`
       },
       body: JSON.stringify({ 
-        from: email,
-        fromName: name,
-        subject, 
-        message,
+        from: 'onboarding@resend.dev',
         to: 'fireexecontact@gmail.com', // The recipient email address
-        domain: currentDomain // For tracking purposes
+        reply_to: email,
+        subject: `Contact Form: ${subject}`, 
+        html: `<p><strong>Name:</strong> ${name}</p>
+               <p><strong>Email:</strong> ${email}</p>
+               <p><strong>Message:</strong></p>
+               <p>${message.replace(/\n/g, '<br>')}</p>
+               <p><em>Sent from: ${currentDomain}</em></p>`
       })
     });
     

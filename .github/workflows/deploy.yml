@@ -25,10 +25,12 @@ jobs:
       - name: Create config.js file
         env:
           GITHUB_PAT: ${{ secrets.PAT_TOKEN }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
         run: |
           echo "// Configuration file" > config.js
           echo "const CONFIG = {" >> config.js
-          echo "  RESEND_API_ENDPOINT: '/api/send-email'," >> config.js
+          echo "  RESEND_API_ENDPOINT: 'https://api.resend.com/emails'," >> config.js
+          echo "  RESEND_API_KEY: '${{ secrets.RESEND_API_KEY }}'," >> config.js
           echo "  GITHUB_TOKEN: '${{ secrets.PAT_TOKEN }}'" >> config.js
           echo "};" >> config.js
 
