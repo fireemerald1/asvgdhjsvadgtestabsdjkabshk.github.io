@@ -11,20 +11,14 @@ permissions:
   id-token: write
 
 jobs:
-  build:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: Install dependencies
-        run: npm ci || npm install
 
       # Create config.js with GitHub token for contact form functionality
       - name: Create config.js file
@@ -37,32 +31,26 @@ jobs:
           echo "  GITHUB_TOKEN: '${{ secrets.PAT_TOKEN }}'" >> config.js
           echo "};" >> config.js
 
-      - name: Build website
+      # Create firebase-config.js file if needed
+      - name: Create firebase-config.js file
+        env:
+          FIREBASE_CONFIG: ${{ secrets.FIREBASE_CONFIG }}
         run: |
-          echo "Building website assets..."
-          npm run build  # or whatever your build command is
+          if [ -n "$FIREBASE_CONFIG" ]; then
+            echo "$FIREBASE_CONFIG" > firebase-config.js
+            echo "Firebase config created successfully"
+          else
+            echo "No Firebase config provided, skipping"
+          fi
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: site-build
-          path: ./build  # adjust to your output directory
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
 
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v3
-
-      - name: Upload Pages artifact
+      - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./build  # again, make sure this is your build output
+          path: '.'
 
-  deploy:
-    needs: build
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4
